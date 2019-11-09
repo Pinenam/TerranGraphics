@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+        <meta charset="utf-8">
+        <title>BlinkTriangle</title> 
+	</head>
+ 
+ 
+    <body onload ="main()">
+        <canvas id="webglCanvas" style="border:1px solid red" width="600" height ="600"></canvas>    
+        <script src="BlinkTriangle.js"></script>
+        <script type="text/javascript" src="../lib/initWebGL.js"></script>
+        <script id="shader-vs" type="x-shader/x-vertex">
+            uniform mat4 u_mMatrix;
+            attribute vec3 a_v3Position;  
+            attribute vec3 a_v3Color;    
+            varying vec3 v_v3Color;   //顶点着色器和片段着色器通讯的变量，顶点和片段着色器定义的变量名字必须相同
+            void main(void){
+                v_v3Color = a_v3Color;
+                gl_Position = vec4(a_v3Position, 1.0);
+            }
+        </script>
+        <script id="shader-fs" type="x-shader/x-fragment">
+            #ifdef GL_FRAGMENT_PRECISION_HIGH
+                precision highp float;
+            #else
+                precision mediump float;
+            #endif
+            varying vec3 v_v3Color;
+ 
+            void main(void)
+            {
+ 
+               gl_FragColor = vec4(v_v3Color, 1.0);
+            }
+        </script>
+    </body>
+</html>
