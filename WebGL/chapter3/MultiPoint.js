@@ -1,4 +1,4 @@
-let VSHADER_SOURCE=
+ let VSHADER_SOURCE=
     'attribute vec4 a_Position;'+
     'attribute float a_PointSize;'+
     'void main(){'+
@@ -42,30 +42,35 @@ function main(){
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    gl.drawArrays(gl.POINTS, 0, n);
+    gl.drawArrays(gl.POINTS, 0, 3);
 
 }
 
 
 
 function initVertexBuffers(gl){
-    let vertices=new Float32Array([0.0,0.5,-0.5,-0.5,0.5,-0.5]);//????
+    //函数的返回值是待绘制顶点的数量，保存在变量n中
+    //如果函数内发生错误，返回的则是负值。
+    let vertices=new Float32Array([0.0,0.5,
+                                -0.5,-0.5,
+                                0.5,-0.5
+    ]);//????
     let n=3;
-
     //创建缓冲区对象
     let vertexBuffer=gl.createBuffer();
     if (!vertexBuffer){
-        console.log('Failed to create the buffe object');
+        console.log('Failed to create the buffer object');
         return -1;//????
     }
 
     //将缓冲区对象绑定到目标
     gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer);
+    //将数据写入缓冲区对象，因为不能直接把数据写到缓冲区里
     gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW);
-    let a_Position=gl.getAttribLocation(gl.program, 'a_Position');
     
-
-    //将缓冲区对象分配给a_Position变量
+   
+    //将缓冲区对象分配给a_Position变量 
+    let a_Position=gl.getAttribLocation(gl.program, 'a_Position');
     gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
     //连接a_Position变量与分配给它的缓冲区对象
     gl.enableVertexAttribArray(a_Position);

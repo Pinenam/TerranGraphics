@@ -1,0 +1,10 @@
+创建缓冲区对象
+let vertexBuffer=gl.createBuffer();
+绑定缓冲区对象
+gl.bindBuffer(gl.ARRAY_BUFFER，vertexBuffer)
+将数据写入缓冲区对象
+gl.bufferData(gl.ARRAY_BUFFER,vertices,STATIC_DRAW)
+把缓冲区对象分配给attribute变量
+gl.vertexAttribPointer(a_Position,顶点分量规模，分量的类型，相邻两个顶点之间的字节数,指定缓冲区对象中的偏移量)
+开启attribute变量
+gl.enableVertexAttribArray(attrribute对象和存储的位置);
