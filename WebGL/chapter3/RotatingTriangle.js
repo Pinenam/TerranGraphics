@@ -16,7 +16,7 @@ let FSHADER_SOURCE=
     'void main(){'+
     'gl_FragColor = v_Color;'+
     '}';
-
+//旋转速度（度每秒）
 let ANGLE_STEP = 45.0;
 
 function main() {
@@ -53,12 +53,14 @@ function main() {
         return;
     }
     let modelMatrix = new Matrix4();
-
+    //模型矩阵，Matrix4对象
     let currentAngle = 0.0;
-
+    //模型矩阵，Matrix4对象
     let tick = function () {
+        //更新旋转角
         currentAngle = animate(currentAngle);
         draw(gl, n, currentAngle, modelMatrix, u_ModelMatrix);
+        //请求浏览器调用tick
         requestAnimationFrame(tick);
     };
     tick();

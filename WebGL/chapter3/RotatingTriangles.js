@@ -61,16 +61,16 @@ function main(){
 
         
         //父三角的顶点旋转矩阵  
-        modelMatBig.setTranslate(0.0, Math.sqrt(3)/3, 0.0);    
+        modelMatBig.setTranslate(0.0, cos60, 0.0);    
         modelMatBig.rotate(currentTargetAngle, 0, 0, 1);
-        modelMatBig.translate( 0.0, -Math.sqrt(3)/3, 0.0);
+        modelMatBig.translate( 0.0, -cos60, 0.0);
         draw(gl, 0, 3, modelMatBig, true);
 
         
         //子三角的顶点旋转矩阵
-        modelMatSmall.setTranslate(0.0, Math.sqrt(3)/3, 0.0);    
+        modelMatSmall.setTranslate(0.0, cos60, 0.0);    
         modelMatSmall.rotate(currentTargetAngle, 0, 0, 1);
-        modelMatSmall.translate(0.0, -Math.sqrt(3)/3, 0.0);
+        modelMatSmall.translate(0.0, -cos60, 0.0);
 
         //两个三角的自转矩阵
         modelMatSmall.translate(-0.5, -Math.sqrt(3)/6, 0.0);
@@ -88,18 +88,26 @@ function main(){
 /**
  * 创建顶点缓存
  * @param {*} gl 
- */
+ */ 
+const cos60=(Math.sqrt(3)/3);
 function initvertexBuffers(gl)
 {
+   
     let vertices = new Float32Array([
-        0.0, Math.sqrt(3)/3, 1.0, 0.0, 0.0,
-        -0.5, -Math.sqrt(3)/6, 0.0, 1.0, 0.0,
-        0.5, -Math.sqrt(3)/6, 0.0, 0.0, 1.0,
+        0.0, cos60, 1.0, 0.0, 0.0,
+        -0.5, -0.5*cos60, 0.0, 1.0, 0.0,
+        0.5, -0.5*cos60, 0.0, 0.0, 1.0,
 
-        -0.5, -Math.sqrt(3)/6 + 0.5*Math.sqrt(3)/3, 1.0, 0.0, 0.0,
-        -0.5-0.5*0.5, -Math.sqrt(3)/6 - 0.5*Math.sqrt(3)/6, 0.0, 1.0, 0.0,
-        -0.5 + 0.5*0.5, -Math.sqrt(3)/6 - 0.5*Math.sqrt(3)/6, 0.0, 0.0, 1.0,
+        -0.5, 0, 1.0, 0.0, 0.0,
+        -0.5-0.5*0.5, -0.75*cos60, 0.0, 1.0, 0.0,
+        -0.5 + 0.5*0.5, -0.75*cos60, 0.0, 0.0, 1.0,
     ]);
+
+    var indices = new Uint8Array([
+        0,1,2,3,4,5
+    ]);
+    var indexBuffer = gl.createBuffer();
+    
     let elementSize = vertices.BYTES_PER_ELEMENT;
     let vertiexBUffer = gl.createBuffer();
     if(!vertiexBUffer)
@@ -117,6 +125,10 @@ function initvertexBuffers(gl)
     let a_Color=gl.getAttribLocation(gl.program, 'a_Color');
     gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false, elementSize*5, elementSize*2);
     gl.enableVertexAttribArray(a_Color);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+    return indices.length;
 }
 
 
@@ -142,7 +154,6 @@ function updateAngle(frameInterval, currentAngle, rotateSpeed)
 let modelMartrix=new Matrix4();
 function draw(gl, offest, count, modelMat, update)
 {
-    //modelMartrix.setTranslate(0.35,2.0,0);
     let u_modelMat = gl.getUniformLocation(gl.program, "u_ModelMat");
     gl.uniformMatrix4fv(u_modelMat, false, modelMat.elements);
     
@@ -150,7 +161,8 @@ function draw(gl, offest, count, modelMat, update)
     {
        gl.clear(gl.COLOR_BUFFER_BIT);
     }
-    gl.drawArrays(gl.TRIANGLES, offest, count);                                        
+    //gl.drawArrays(gl.TRIANGLES, offest, count);
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);                                        
 }
 
 function upRotating(){

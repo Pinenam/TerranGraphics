@@ -25,7 +25,17 @@ function main(){
         console.log("Cant get WebGL contexts.");
         return;
     }
-
+    /**
+     * initShaders()都做了些什么：
+     * 1分别创建了两个着色器对象
+     * 2将着色器源代码编译为对象
+     * 3验证着色器的编译是否成功
+     * 4分别创建了两个着色器程序
+     * 5分别将两个着色器对象关联到了两个着色器程序
+     * 6分别连接了两个着色器程序
+     * 7判断着色器的链接是否成功完成了
+     * 8使用着色器来处理顶点和片元
+     */
     if(!initShaders(gl,VSHADER_SOURCE,FSHADER_SOURCE)){
         console.log('Failed to complie WebGl programs.')
         return;
