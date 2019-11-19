@@ -43,7 +43,11 @@ function main() {
     }
 
     gl.clearColor(0, 0, 0, 1);
-    gl.enable(gl.DEPTH_TEST);
+    //gl.enable(gl.DEPTH_TEST);//开启隐藏面消除
+
+    gl.enable(gl.BLEND);
+    //设置混合函数
+    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
 
     //模型视图投影矩阵
     var u_MvpMatrix = gl.getUniformLocation(gl.program, 'u_MvpMatrix');
@@ -68,14 +72,22 @@ function initVertexBuffers(gl) {
     //  v2------v3
     var verticesColors = new Float32Array([
         // Vertex coordinates and color
+      /*  1.0,  1.0,  1.0,     1.0,  1.0,  0.0,0.1,  // v0 White
+        -1.0,  1.0,  1.0,     1.0,  1.0,  0.0,0.1,  // v1 Magenta
+        -1.0, -1.0,  1.0,     1.0,  1.0,  0.0,0.1,  // v2 Red
+        1.0, -1.0,  1.0,     1.0,  1.0,  0.0,0.1,  // v3 Yellow
+        1.0, -1.0, -1.0,     1.0,  1.0,  0.0,0.1,  // v4 Green
+        1.0,  1.0, -1.0,     1.0,  1.0,  0.0,0.1,  // v5 Cyan
+        -1.0,  1.0, -1.0,     1.0,  1.0,  1.0,0.1,  // v6 Blue
+        -1.0, -1.0, -1.0,     1.0,  1.0,  0.0 ,0.1*/
         1.0,  1.0,  1.0,     1.0,  1.0,  1.0,  // v0 White
         -1.0,  1.0,  1.0,     1.0,  0.0,  1.0,  // v1 Magenta
         -1.0, -1.0,  1.0,     1.0,  0.0,  0.0,  // v2 Red
         1.0, -1.0,  1.0,     1.0,  1.0,  0.0,  // v3 Yellow
-        1.0, -1.0, -1.0,     0.0,  1.0,  0.0,  // v4 Green
-        1.0,  1.0, -1.0,     0.0,  1.0,  1.0,  // v5 Cyan
+        1.0, -1.0, -1.0,     0.0,  1.0,  1.0,  // v4 Green
+        1.0,  1.0, -1.0,     0.0,  1.0,  0.0,  // v5 Cyan
         -1.0,  1.0, -1.0,     0.0,  0.0,  1.0,  // v6 Blue
-        -1.0, -1.0, -1.0,     0.0,  0.0,  0.0   // v7 Black
+        -1.0, -1.0, -1.0,     0.0,  0.0,  1.0   // v7 Black*/
     ]);
 
     // 顶点索引

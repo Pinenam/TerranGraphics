@@ -9,5 +9,5 @@ function main(){
         return;
     }
     gl.clearColor(0.0,1.0,1.0,0.32);
-    gl.clear(gl.COLOR_BUFFER_BIT);//清空<canvas>
+    gl.clear(gl.COLOR_BUFFER_BIT);
 }

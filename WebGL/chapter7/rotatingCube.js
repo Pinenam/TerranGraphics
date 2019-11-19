@@ -4,10 +4,14 @@ let yRotating=0.001;
 let zRotating=0.001;
 
 function main(){
+   
          let canvas=document.getElementById('webgl');
          //让canvas支持webGL渲染
          gl=canvas.getContext('experimental-webgl');
-
+         //gl.enable(gl.DEPTH_TEST);
+         gl.enable(gl.BLEND);
+         //设置混合函数
+         gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
          let vertices=[
             -1,-1,-1, 1,-1,-1,     1, 1,-1, -1, 1,-1,
             -1,-1, 1, 1,-1, 1,     1, 1, 1, -1, 1, 1,
@@ -17,18 +21,12 @@ function main(){
             -1, 1,-1, -1, 1, 1,    1, 1, 1, 1, 1,-1, 
          ];
          let colors = [ 
-            1.0, -1.0,  1.0,      0.5,  1.0,  0.0,
-            1.0, -1.0,  1.0,      0.5,  1.0,  0.0,
-            1.0,  1.0,  1.0,      0.6,  1.0,  1.0,  // v0 White
-            -1.0,  1.0,  1.0,     0.6,  0.0,  1.0,  // v1 Magenta
-            -1.0, -1.0,  1.0,     0.5,  0.0,  0.0,  // v2 Red
-            1.0, -1.0,  1.0,      0.5,  1.0,  0.0,  // v3 Yellow
-            1.0, -1.0, -1.0,      0.0,  1.0,  0.0,  // v4 Green
-            1.0,  1.0, -1.0,      0.0,  1.0,  1.0,  // v5 Cyan
-            -1.0,  1.0, -1.0,     0.0,  0.0,  1.0,
-            -1.0,  1.0, -1.0,     0.0,  0.0,  1.0,
-            -1.0,  1.0, -1.0,     0.0,  0.0,  1.0,  // v6 Blue
-            1.0, 1.0, 1.0,        1.0,  1.0,  1.0   // v7 Black
+            0.5, 0.5, 1.0, 0.4,  0.5, 0.5, 1.0, 0.4,  0.5, 0.5, 1.0, 0.4,  0.5, 0.5, 1.0, 0.4,  // v0-v1-v2-v3 front(blue)
+            0.5, 1.0, 0.5, 0.4,  0.5, 1.0, 0.5, 0.4,  0.5, 1.0, 0.5, 0.4,  0.5, 1.0, 0.5, 0.4,  // v0-v3-v4-v5 right(green)
+            1.0, 0.5, 0.5, 0.4,  1.0, 0.5, 0.5, 0.4,  1.0, 0.5, 0.5, 0.4,  1.0, 0.5, 0.5, 0.4,  // v0-v5-v6-v1 up(red)
+            1.0, 1.0, 0.5, 0.4,  1.0, 1.0, 0.5, 0.4,  1.0, 1.0, 0.5, 0.4,  1.0, 1.0, 0.5, 0.4,  // v1-v6-v7-v2 left
+            1.0, 1.0, 1.0, 0.4,  1.0, 1.0, 1.0, 0.4,  1.0, 1.0, 1.0, 0.4,  1.0, 1.0, 1.0, 0.4,  // v7-v4-v3-v2 down
+            0.5, 1.0, 1.0, 0.4,  0.5, 1.0, 1.0, 0.4,  0.5, 1.0, 1.0, 0.4,  0.5, 1.0, 1.0, 0.4   // v4-v7-v6-v5 back
          ];
          let indices = [
             0,1,2, 0,2,3, 4,5,6, 4,6,7,
@@ -68,7 +66,7 @@ function main(){
          let FSHADER_SOURCE = 'precision mediump float;'+
             'varying vec3 v_Color;'+
             'void main(void) {'+
-               'gl_FragColor=vec4(v_Color, 1.);'+
+               'gl_FragColor=vec4(v_Color,0.9);'+
             '}';
          
          let vertShader=gl.createShader(gl.VERTEX_SHADER);
@@ -88,16 +86,16 @@ function main(){
          let u_Pmatrix=gl.getUniformLocation(shaderProgram, "u_Pmatrix");
          let u_Vmatrix=gl.getUniformLocation(shaderProgram, "u_Vmatrix");
          let u_Mmatrix=gl.getUniformLocation(shaderProgram, "u_Mmatrix");
-
+         let elementSize = vertices.BYTES_PER_ELEMENT;
          gl.bindBuffer(gl.ARRAY_BUFFER,vertex_buffer);
          let a_Position=gl.getAttribLocation(shaderProgram, "a_Position");
-         gl.vertexAttribPointer(a_Position,3,gl.FLOAT, false,0,0) ;
+         gl.vertexAttribPointer(a_Position,3,gl.FLOAT, false,elementSize*3,0) ;
          
          // Position
          gl.enableVertexAttribArray(a_Position);
          gl.bindBuffer(gl.ARRAY_BUFFER, color_buffer);
          let a_Color=gl.getAttribLocation(shaderProgram, "a_Color");
-         gl.vertexAttribPointer(a_Color, 3, gl.FLOAT, false,0,0) ;
+         gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false,elementSize*4,0) ;
          
          // Color
          gl.enableVertexAttribArray(a_Color);
@@ -181,10 +179,11 @@ function main(){
             rotateX(mov_matrix, dt*xRotating);
             time_old=time;
 
-            gl.enable(gl.DEPTH_TEST);
-            gl.depthFunc(gl.LEQUAL);
+            //开启隐藏面消除
+            //gl.depthFunc(gl.LEQUAL);
             gl.clearColor(0.5, 0.5, 0.5, 0.9);
-            gl.clearDepth(1.0);
+            //gl.clearDepth(1.0);
+
 
             gl.viewport(0.0, 0.0, canvas.width, canvas.height);
             gl.clear(gl.COLOR_BUFFER_BIT || gl.DEPTH_BUFFER_BIT);
@@ -192,7 +191,9 @@ function main(){
             gl.uniformMatrix4fv(u_Vmatrix, false, view_matrix);
             gl.uniformMatrix4fv(u_Mmatrix, false, mov_matrix);
             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, index_buffer);
+           // gl.depthMask(false);
             gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+           // gl.depthMask(true);
 			//在下次重绘之前调用指定的回调函数更新动画
             window.requestAnimationFrame(animate);
          }

@@ -40,6 +40,8 @@ function main() {
 
     //设置顶点位置
     let n = initVertexBuffers(gl);
+
+    
     if (n < 0) {
         console.log('Failed to set the positions of the vertices');
         return;

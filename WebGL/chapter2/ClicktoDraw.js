@@ -53,6 +53,24 @@ function main(){
     {
         var x=ev.clientX;//鼠标点击处的x坐标
         var y=ev.clientY;//鼠标点击处的y坐标
+        /**
+         * 鼠标在浏览器客户区点击的位置为：(event.clientX,event.clientY)
+         * 那么在canvas中的坐标（x,y）就是：
+         * var rect = event.target.getBoundingClientRect();
+         * x = event.clientX-rect.left;
+         * y = - (event.clientY-rect.top);
+         * 其中rect.left是canvas左边界距离浏览器客户区左边界的位置,
+         * rect.top是canvas上边界距离浏览器客户区上边界的位置，
+         * 注意y坐标加符号是因为canvas中Y轴向下为正方向
+         * 
+         * 在webgl中的坐标位置(x,y)则为：
+         * x = ( (event.clientX-rect.left) -canvas.width/2 )/(canvas.width/2);
+         *   = 2*(canvas_x/canvas.width)-1
+         * y = (canvas.height/2 - (event.clientY-rect.top))/(canvas.height/2);
+         * 利用上一步从canvas坐标系转换到webgl坐标系，
+         * 主要的工作就是需要将坐标范围映射到(-1,1)的范围，
+         * 其次是注意webgl中Y轴向上是正方向
+         */
         var rect=ev.target.getBoundingClientRect();
 
         x=((x-rect.left)-canvas.width/2)/(canvas.width/2);
