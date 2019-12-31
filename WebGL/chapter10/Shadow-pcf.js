@@ -29,16 +29,18 @@ var VSHADER_SOURCE =
   '}\n';
 
 // Fragment shader program for regular drawing
-var FSHADER_SOURCE_PCF =
+var FSHADER_SOURCE =
   '#ifdef GL_ES\n' +
   'precision mediump float;\n' +
   '#endif\n' +
   'uniform sampler2D u_ShadowMap;\n' +
   'varying vec4 v_PositionFromLight;\n' +
   'varying vec4 v_Color;\n' +
+  'uniform int u_PCFswitch;'+
   'void main() {\n' +
   '  vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 +0.5;\n' +
   '  vec4 rgbaDepth;'+
+  '  vec4 rgbaDepthN = texture2D(u_ShadowMap, shadowCoord.xy);\n' +
   '  float shadows=0.0;\n'+
   '  float texelSize=1.0/1024.0;'+//阴影像素尺寸，越小阴影贴图精度越高
   '  for(float y=-1.5; y <= 1.5; y += 1.0){'+ // 采样
@@ -49,23 +51,13 @@ var FSHADER_SOURCE_PCF =
   '}'+
   '  shadows/=16.0;'+//对周围4*4区域采样所以要/16求均值
   '  float visibility =min(0.6+(1.0-shadows),1.0);\n' +//0.6是阴影alpha值
-  '  gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);\n' +
+  '  float visibilityN = (shadowCoord.z > rgbaDepthN.r + 0.005) ? 0.6 : 1.0;\n' +
+  '  if(u_PCFswitch>0){'+
+  '  gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);}\n' +
+  '  else{'+
+  '  gl_FragColor = vec4(v_Color.rgb * visibilityN, v_Color.a);}'+
   '}\n';
 
-  var FSHADER_SOURCE =
-  '#ifdef GL_ES\n' +
-  'precision mediump float;\n' +
-  '#endif\n' +
-  'uniform sampler2D u_ShadowMap;\n' +
-  'varying vec4 v_PositionFromLight;\n' +
-  'varying vec4 v_Color;\n' +
-  'void main() {\n' +
-  '  vec3 shadowCoord = (v_PositionFromLight.xyz/v_PositionFromLight.w)/2.0 + 0.5;\n' +
-  '  vec4 rgbaDepth = texture2D(u_ShadowMap, shadowCoord.xy);\n' +
-  '  float depth = rgbaDepth.r;\n' + // Retrieve the z-value from R
-  '  float visibility = (shadowCoord.z > depth + 0.005) ? 0.6 : 1.0;\n' +
-  '  gl_FragColor = vec4(v_Color.rgb * visibility, v_Color.a);\n' +
-  '}\n';
 var OFFSCREEN_WIDTH = 2048, OFFSCREEN_HEIGHT = 2048;
 var LIGHT_X = 0, LIGHT_Y = 7, LIGHT_Z = 2; // Position of the light source
 function main() {
@@ -87,10 +79,24 @@ function main() {
     console.log('Failed to get the storage location of attribute or uniform variable from shadowProgram'); 
     return;
   }
-  var normalProgram;
   // Initialize shaders for regular drawing
-  normalProgram = createProgram(gl, VSHADER_SOURCE, FSHADER_SOURCE_PCF);
-  normalProgram.a_Position = gl.getAttribLocation(normalProgram, 'a_Position');
+  
+  var normalProgram = createProgram(gl, VSHADER_SOURCE, FSHADER_SOURCE);
+  gl.useProgram(normalProgram);
+  normalProgram.u_PCFswitch = gl.getUniformLocation(normalProgram,'u_PCFswitch');
+  
+  var PCFswitch=0;
+
+  document.onkeydown=function(event){
+    var e = event || window.event || arguments.callee.caller.arguments[0];
+    if(e && e.keyCode==80){ 
+      PCFswitch=1;
+      }    
+    else
+      PCFswitch=0;
+    }
+  
+  normalProgram.a_Position = gl.getAttribLocation(normalProgram, 'a_Position'); 
   normalProgram.a_Color = gl.getAttribLocation(normalProgram, 'a_Color');
   normalProgram.u_MvpMatrix = gl.getUniformLocation(normalProgram, 'u_MvpMatrix');
   normalProgram.u_MvpMatrixFromLight = gl.getUniformLocation(normalProgram, 'u_MvpMatrixFromLight');
@@ -127,7 +133,7 @@ function main() {
   viewProjMatrixFromLight.lookAt(LIGHT_X, LIGHT_Y, LIGHT_Z, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
   var viewProjMatrix = new Matrix4();          // Prepare a view projection matrix for regular drawing
-  viewProjMatrix.setPerspective(15, canvas.width/canvas.height, 1.0, 100.0);
+  viewProjMatrix.setPerspective(9, canvas.width/canvas.height, 1.0, 100.0);
   viewProjMatrix.lookAt(0.0, 7.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
   var currentAngle = 0.0; // Current rotation angle (degrees)
@@ -135,7 +141,7 @@ function main() {
   var mvpMatrixFromLight_p = new Matrix4(); // A model view projection matrix from light source (for plane)
   var tick = function() {
     currentAngle = animate(currentAngle);
-
+    gl.uniform1i(normalProgram.u_PCFswitch,PCFswitch);
     gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);               // Change the drawing destination to FBO
     gl.viewport(0, 0, OFFSCREEN_HEIGHT, OFFSCREEN_HEIGHT); // Set view port for FBO
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);   // Clear FBO    
@@ -152,7 +158,7 @@ function main() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);    // Clear color and depth buffer
 
     gl.useProgram(normalProgram); // Set the shader for regular drawing
-    gl.uniform1i(normalProgram.u_ShadowMap, 0);  // Pass 0 because gl.TEXTURE0 is enabledする
+    gl.uniform1i(normalProgram.u_ShadowMap, 0);  // Pass 0 because gl.TEXTURE0 is enabled
     // Draw the triangle and plane ( for regular drawing)
     gl.uniformMatrix4fv(normalProgram.u_MvpMatrixFromLight, false, mvpMatrixFromLight_t.elements);
     drawTriangle(gl, normalProgram, triangle, currentAngle, viewProjMatrix);
@@ -162,7 +168,6 @@ function main() {
     window.requestAnimationFrame(tick, canvas);
   };
   tick(); 
-
 }
 
 // Coordinate transformation matrix
